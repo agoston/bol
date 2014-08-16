@@ -1,4 +1,4 @@
-package hello;
+package com.bol.assessment;
 
 public class Greeting {
 
