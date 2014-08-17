@@ -2,8 +2,11 @@ package com.bol.assessment;
 
 public class GameState {
 
-    private final long id;
-    private final String content;
+    private long id;
+    private String content;
+
+    public GameState() {
+    }
 
     public GameState(long id, String content) {
         this.id = id;
