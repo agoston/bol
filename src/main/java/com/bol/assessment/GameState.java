@@ -1,11 +1,11 @@
 package com.bol.assessment;
 
-public class Greeting {
+public class GameState {
 
     private final long id;
     private final String content;
 
-    public Greeting(long id, String content) {
+    public GameState(long id, String content) {
         this.id = id;
         this.content = content;
     }
