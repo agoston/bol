@@ -2,25 +2,20 @@ package com.bol.assessment;
 
 import java.util.UUID;
 
-public class Player {
+public class Player extends MatchPlayer {
     private final UUID id;
-    private final String name;
 
     public Player() {
         this("Anonymous");
     }
 
     public Player(String name) {
-        this.name = name;
+        super(name);
         this.id = UUID.randomUUID();
     }
 
     public UUID getId() {
         return id;
-    }
-
-    public String getName() {
-        return name;
     }
 
     @Override
