@@ -1,10 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/html">
 <head>
+    <title>Lubang Menggali</title>
     <meta charset="utf-8"/>
     <link rel="stylesheet" type="text/css" href="game.css"/>
     <script src="jquery-2.1.1.min.js"></script>
+
+    <script charset="utf-8">
+
+        var player = {};
+        var opponent = {};
+
+        $(function () {
+            $("input.login:button").click(function (e) {
+                player.name = $("input.login:text");
+                var ajaxReq = $.ajax({
+                    url: "/player?name=" + player.name,
+                    type: "POST",
+                    success: function (data, textStatus, jqXHR) {
+                        console.log(data);
+                        player.id = data.id;
+                        $("div.login").fadeOut(400, function() {
+                            startMatch();
+                            $("div.board").fadeIn(400);
+                        });
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert(textStatus);
+                    }
+                });
+                e.preventDefault();
+            });
+        });
+
+        function startMatch() {
+
+        }
+
+    </script>
 </head>
 <body>
+
+<div class="login">
+You are: <input type="text" class="login" name="name" value="Anonymous"/><input type="button" value="Start!" class="login"/>
+</div>
+
+<div class="board">
+Now you see me
+</div>
 
 </body>

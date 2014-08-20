@@ -82,6 +82,7 @@ public class GameIntegrationTest {
         assertThat(endedMatch.getBody().getState(), is(Match.State.PLAYER_LOGOUT));
     }
 
+    // TODO: [AH] this is too complicated to maintain; look for ways to simplify/clean this, e.g. with helper methods that do the grunt work
     @Test
     public void testFirstMoves() {
         Player player1 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
