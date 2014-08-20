@@ -54,13 +54,16 @@
 
             function drawBoard() {
                 var boardSelector = $("div.board");
+                boardSelector.empty();
 
+                // pits
                 for (var i = 0; i < 2; i++) {
                     for (var j = 0; j < 6; j++) {
                         var newDiv = document.createElement('div');
+                        newDiv.setAttribute("")
                         $(newDiv).css({
                             position: "absolute",
-                            left: (100 + j*50) + "px",
+                            left: (200 + j*50) + "px",
                             top: (100 + i*50) + "px",
                             width: "40px",
                             height: "40px",
@@ -75,6 +78,29 @@
                         $(newDiv).appendTo(boardSelector);
                     }
                 }
+
+                // lubang menggali
+                for (var i = 0; i < 2; i++) {
+                    var newDiv = document.createElement('div');
+                    $(newDiv).css({
+                        position: "absolute",
+                        left: (100 + i*400) + "px",
+                        top: "100px",
+                        width: "90px",
+                        height: "90px",
+                        margin: "5px",
+                        "color": "#fff",
+                        "background-color": "#542C00",
+                        "text-shadow": "3px 3px 3px #000",
+                        "text-align": "center",
+                        "line-height": "80px",
+                        "font-size": "200%"
+                    });
+                    newDiv.innerHTML = match.pits[i][6];
+                    $(newDiv).appendTo(boardSelector);
+                }
+
+
             }
         }
 
