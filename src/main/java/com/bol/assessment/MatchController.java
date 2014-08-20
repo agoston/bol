@@ -80,8 +80,30 @@ public class MatchController {
         return match;
     }
 
+    @RequestMapping(value = "/player/{id}/match/{pit}", method = GET)
+    public Match move(@PathVariable String id, @PathVariable int pit) {
+        Player player = getPlayer(id);
+        Match match = arena.get(player.getId());
+        if (match == null) {
+            throw new PlayerNotInAMatchException();
+        }
+
+        applyRules(match.whichPlayer(player.getId()), match, pit);
+
+        return match;
+    }
+
+    private void applyRules(int i, Match match, int pit) {
+
+    }
+
+
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Unknown player ID")
     class PlayerNotFoundException extends RuntimeException {
+    }
+
+    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Player not in a match")
+    class PlayerNotInAMatchException extends RuntimeException {
     }
 
     @ResponseStatus(value = HttpStatus.ACCEPTED, reason = "Waiting for other players")
