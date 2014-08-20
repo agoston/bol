@@ -12,7 +12,7 @@ public class Match {
     private Player[] players;
 
     private String[] names;
-    private int[][] pits = new int[2][7];
+    private int[][] pits;
     private State state;
 
     // for serialization
@@ -20,10 +20,15 @@ public class Match {
 
     public Match(Player... players) {
         this.players = players;
+
         this.names = new String[]{
                 players[0].getName(),
                 players[1].getName()
+
         };
+
+        this.state = State.MOVE_PLAYER_1;
+        this.pits = new int[][] {{6,6,6,6,6,6,0},{6,6,6,6,6,6,0}};
     }
 
     public int[][] getPits() {

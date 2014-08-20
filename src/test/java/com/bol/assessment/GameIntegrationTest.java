@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.UUID;
 
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -68,14 +69,48 @@ public class GameIntegrationTest {
     @Test
     public void testLogoutDuringMatch() {
         Player player1 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
+        ResponseEntity<String> p1startResponse = restTemplate.postForEntity(baseURL + "/player/" + player1.getId() + "/match", null, String.class);
+        assertThat(p1startResponse.getStatusCode(), is(HttpStatus.ACCEPTED));
         Player player2 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
-        ResponseEntity<Match> match = restTemplate.postForEntity(baseURL + "/player/" + player2.getId() + "/match", null, Match.class);
-        assertThat(match.getStatusCode(), is(HttpStatus.OK));
+        ResponseEntity<Match> p2startResponse = restTemplate.postForEntity(baseURL + "/player/" + player2.getId() + "/match", null, Match.class);
+        assertThat(p2startResponse.getStatusCode(), is(HttpStatus.OK));
 
         restTemplate.delete(baseURL + "/player/" + player1.getId());
 
         ResponseEntity<Match> endedMatch = restTemplate.getForEntity(baseURL + "/player/" + player2.getId() + "/match", Match.class);
-        assertThat(match.getStatusCode(), is(HttpStatus.OK));
+        assertThat(endedMatch.getStatusCode(), is(HttpStatus.OK));
         assertThat(endedMatch.getBody().getState(), is(Match.State.PLAYER_LOGOUT));
+    }
+
+    @Test
+    public void testFirstMoves() {
+        Player player1 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
+        ResponseEntity<String> p1startResponse = restTemplate.postForEntity(baseURL + "/player/" + player1.getId() + "/match", null, String.class);
+        assertThat(p1startResponse.getStatusCode(), is(HttpStatus.ACCEPTED));
+        Player player2 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
+        ResponseEntity<Match> p2startResponse = restTemplate.postForEntity(baseURL + "/player/" + player2.getId() + "/match", null, Match.class);
+        assertThat(p2startResponse.getStatusCode(), is(HttpStatus.OK));
+
+        Match match = p2startResponse.getBody();
+        assertThat(match.getState(), is(Match.State.MOVE_PLAYER_1));
+        assertArrayEquals(new int[] {6,6,6,6,6,6,0}, match.getPits()[0]);
+        assertArrayEquals(new int[] {6,6,6,6,6,6,0}, match.getPits()[1]);
+
+        match = restTemplate.getForObject(baseURL + "/player/" + player1.getId() + "/match/0", Match.class);
+        assertThat(match.getState(), is(Match.State.MOVE_PLAYER_1));
+        assertArrayEquals(new int[] {0,7,7,7,7,7,1}, match.getPits()[0]);
+        assertArrayEquals(new int[] {6,6,6,6,6,6,0}, match.getPits()[1]);
+
+        match = restTemplate.getForObject(baseURL + "/player/" + player1.getId() + "/match/1", Match.class);
+        assertThat(match.getState(), is(Match.State.MOVE_PLAYER_2));
+        assertArrayEquals(new int[] {0,0,8,8,8,8,2}, match.getPits()[0]);
+        assertArrayEquals(new int[] {6,6,6,6,6,6,0}, match.getPits()[1]);
+
+        try {
+            restTemplate.getForObject(baseURL + "/player/" + player1.getId() + "/match/2", Match.class);
+            fail();
+        } catch (HttpClientErrorException e) {
+            assertThat(e.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+        }
     }
 }

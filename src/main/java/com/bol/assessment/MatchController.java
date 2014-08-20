@@ -115,7 +115,17 @@ public class MatchController {
             throw new MatchOverException();
         }
 
-        rules.apply(match, match.whichPlayer(player.getId()), pit);
+        int whichPlayer = match.whichPlayer(player.getId());
+        if (match.getState() == State.MOVE_PLAYER_1 && whichPlayer != 0 ||
+                match.getState() == State.MOVE_PLAYER_2 && whichPlayer != 1) {
+            throw new NotYourTurnException();
+        }
+
+        if (match.getPits()[whichPlayer][pit] == 0) {
+            throw new PlayerChoseIncorrectPitException();
+        }
+
+        rules.apply(match, whichPlayer, pit);
 
         return match;
     }
@@ -135,6 +145,10 @@ public class MatchController {
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Incorrect pit")
     class PlayerChoseIncorrectPitException extends RuntimeException {
+    }
+
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Not your turn")
+    class NotYourTurnException extends RuntimeException {
     }
 
     @ResponseStatus(value = HttpStatus.ACCEPTED, reason = "Waiting for other players")
