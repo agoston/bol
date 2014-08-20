@@ -51,8 +51,16 @@ public class MatchController {
     public void logout(@PathVariable String id) {
         UUID uuid = UUID.fromString(id);
 
-        if (lobby.remove(uuid) == null) {
+        Player player = lobby.remove(uuid);
+        if (player == null) {
             throw new PlayerNotFoundException();
+        }
+
+        waiting.compareAndSet(player, null);
+
+        Match match = arena.remove(uuid);
+        if (match != null) {
+            match.setState(Match.State.PLAYER_LOGOUT);
         }
     }
 
