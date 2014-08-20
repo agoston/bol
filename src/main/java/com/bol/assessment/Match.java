@@ -1,21 +1,28 @@
 package com.bol.assessment;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.UUID;
+
 public class Match {
 
-    public enum State {MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, FINISHED};
+    public enum State {MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, FINISHED}
 
-    private MatchPlayer[] players;
+    @JsonIgnore
+    private Player[] players;
+
+    private String[] names;
     private int[][] pits = new int[2][7];
     private State state;
 
     // for serialization
-    public Match() {
-    }
+    public Match() {}
 
     public Match(Player... players) {
-        this.players = new MatchPlayer[] {
-                new MatchPlayer(players[0].getName()),
-                new MatchPlayer(players[1].getName()),
+        this.players = players;
+        this.names = new String[]{
+                players[0].getName(),
+                players[1].getName()
         };
     }
 
@@ -27,15 +34,24 @@ public class Match {
         this.pits = pits;
     }
 
-    public MatchPlayer[] getPlayers() {
-        return players;
-    }
-
     public State getState() {
         return state;
     }
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public String[] getNames() {
+        return names;
+    }
+
+    public int whichPlayer(UUID id) {
+        if (players[0].getId().equals(id)) {
+            return 0;
+        } else if (players[1].getId().equals(id)) {
+            return 1;
+        }
+        throw new IllegalArgumentException("No such player in match: " + id);
     }
 }
