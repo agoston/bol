@@ -90,6 +90,16 @@ public class MatchController {
     public Match create(@PathVariable String id) {
         Player secondPlayer = getPlayer(id);
 
+        // return existing match if still ongoing; wipe from arena if not
+        Match match = arena.get(secondPlayer.getId());
+        if (match != null) {
+            if (MATCH_ONGOING.contains(match.getState())) {
+                return match;
+            } else {
+                arena.remove(secondPlayer.getId());
+            }
+        }
+
         Player firstPlayer = waiting.getAndUpdate(player -> player == null || player.equals(secondPlayer) ? secondPlayer : null);
 
         if (firstPlayer == null || firstPlayer.equals(secondPlayer)) {
@@ -98,10 +108,10 @@ public class MatchController {
 
         LOGGER.info("Match added: " + firstPlayer + " vs. " + secondPlayer);
 
-        Match match = new Match(firstPlayer, secondPlayer);
-        arena.put(firstPlayer.getId(), match);
-        arena.put(secondPlayer.getId(), match);
-        return match;
+        Match newMatch = new Match(firstPlayer, secondPlayer);
+        arena.put(firstPlayer.getId(), newMatch);
+        arena.put(secondPlayer.getId(), newMatch);
+        return newMatch;
     }
 
     @RequestMapping(value = "/player/{id}/match/{pit}", method = GET)
