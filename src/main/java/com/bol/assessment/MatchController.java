@@ -1,5 +1,6 @@
 package com.bol.assessment;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,9 @@ public class MatchController {
     private final Map<UUID, Match> arena = new ConcurrentHashMap<>();
     private final AtomicReference<Player> waiting = new AtomicReference<>(null);
     private final Map<UUID, Player> lobby = new ConcurrentHashMap<>();
+
+    @Autowired
+    Rules rules;
 
     @RequestMapping(value = "/player", method = POST)
     public Player login(@RequestParam(value = "name", required = false, defaultValue = "Anonymous") String name) {
@@ -88,13 +92,13 @@ public class MatchController {
             throw new PlayerNotInAMatchException();
         }
 
-        applyRules(match.whichPlayer(player.getId()), match, pit);
+        if (pit < 0 || pit > 5) {
+            throw new PlayerChoseIncorrectPitException();
+        }
+
+        rules.apply(match, match.whichPlayer(player.getId()), pit);
 
         return match;
-    }
-
-    private void applyRules(int i, Match match, int pit) {
-
     }
 
 
@@ -102,8 +106,12 @@ public class MatchController {
     class PlayerNotFoundException extends RuntimeException {
     }
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Player not in a match")
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Player not in a match")
     class PlayerNotInAMatchException extends RuntimeException {
+    }
+
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Incorrect pit")
+    class PlayerChoseIncorrectPitException extends RuntimeException {
     }
 
     @ResponseStatus(value = HttpStatus.ACCEPTED, reason = "Waiting for other players")

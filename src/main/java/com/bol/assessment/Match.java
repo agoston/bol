@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class Match {
 
-    public enum State {MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, FINISHED}
+    public enum State {MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, WON_PLAYER1, WON_PLAYER2, WON_BOTH}
 
     @JsonIgnore
     private Player[] players;
@@ -53,5 +53,13 @@ public class Match {
             return 1;
         }
         throw new IllegalArgumentException("No such player in match: " + id);
+    }
+
+    public void nextPlayer() {
+        if (state == State.MOVE_PLAYER_1) {
+            state = State.MOVE_PLAYER_2;
+        } else if (state == State.MOVE_PLAYER_2) {
+            state = State.MOVE_PLAYER_1;
+        }
     }
 }
