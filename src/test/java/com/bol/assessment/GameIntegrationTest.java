@@ -53,6 +53,9 @@ public class GameIntegrationTest {
         Player player = restTemplate.postForObject(baseURL + "/player", null, Player.class);
         ResponseEntity<String> startResponse = restTemplate.postForEntity(baseURL + "/player/" + player.getId() + "/match", null, String.class);
         assertThat(startResponse.getStatusCode(), is(HttpStatus.ACCEPTED));
+
+        startResponse = restTemplate.postForEntity(baseURL + "/player/" + player.getId() + "/match", null, String.class);
+        assertThat(startResponse.getStatusCode(), is(HttpStatus.ACCEPTED));
     }
 
     @Test

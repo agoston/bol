@@ -1,5 +1,7 @@
 package com.bol.assessment;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 public class MatchController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MatchController.class);
 
     private static final EnumSet<State> MATCH_ONGOING = EnumSet.of(State.MOVE_PLAYER_1, State.MOVE_PLAYER_2);
 
@@ -89,9 +92,11 @@ public class MatchController {
 
         Player firstPlayer = waiting.getAndUpdate(player -> player == null || player.equals(secondPlayer) ? secondPlayer : null);
 
-        if (firstPlayer == null) {
+        if (firstPlayer == null || firstPlayer.equals(secondPlayer)) {
             throw new WaitingForPlayerException();
         }
+
+        LOGGER.info("Match added: " + firstPlayer + " vs. " + secondPlayer);
 
         Match match = new Match(firstPlayer, secondPlayer);
         arena.put(firstPlayer.getId(), match);

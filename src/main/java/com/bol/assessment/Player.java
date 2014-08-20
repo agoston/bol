@@ -26,16 +26,21 @@ public class Player {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Player)) return false;
-
         Player player = (Player) o;
+        return id.equals(player.id);
 
-        if (!id.equals(player.id)) return false;
-
-        return true;
     }
 
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 }
