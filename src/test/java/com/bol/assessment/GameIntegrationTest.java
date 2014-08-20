@@ -40,7 +40,7 @@ public class GameIntegrationTest {
         Player player = restTemplate.postForObject(baseURL + "/player", null, Player.class);
         restTemplate.delete(baseURL + "/player/" + player.getId());
         try {
-            ResponseEntity<String> startResponse = restTemplate.getForEntity(baseURL + "/player/" + player.getId() + "/start", String.class);
+            ResponseEntity<String> startResponse = restTemplate.postForEntity(baseURL + "/player/" + player.getId() + "/match", null, String.class);
             fail();
         } catch (HttpClientErrorException e) {
             assertThat(e.getStatusCode(), is(HttpStatus.NOT_FOUND));
@@ -50,18 +50,32 @@ public class GameIntegrationTest {
     @Test
     public void testStartMatchNoOtherPlayers() {
         Player player = restTemplate.postForObject(baseURL + "/player", null, Player.class);
-        ResponseEntity<String> startResponse = restTemplate.getForEntity(baseURL + "/player/" + player.getId() + "/match", String.class);
+        ResponseEntity<String> startResponse = restTemplate.postForEntity(baseURL + "/player/" + player.getId() + "/match", null, String.class);
         assertThat(startResponse.getStatusCode(), is(HttpStatus.ACCEPTED));
     }
 
     @Test
     public void testStartMatchOtherPlayerJoinsLater() {
         Player player1 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
-        ResponseEntity<String> startResponse = restTemplate.getForEntity(baseURL + "/player/" + player1.getId() + "/match", String.class);
+        ResponseEntity<String> startResponse = restTemplate.postForEntity(baseURL + "/player/" + player1.getId() + "/match", null, String.class);
         assertThat(startResponse.getStatusCode(), is(HttpStatus.ACCEPTED));
 
         Player player2 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
-        ResponseEntity<Match> match = restTemplate.getForEntity(baseURL + "/player/" + player2.getId() + "/match", Match.class);
+        ResponseEntity<Match> match = restTemplate.postForEntity(baseURL + "/player/" + player2.getId() + "/match", null, Match.class);
         assertThat(match.getStatusCode(), is(HttpStatus.OK));
+    }
+
+    @Test
+    public void testLogoutDuringMatch() {
+        Player player1 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
+        Player player2 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
+        ResponseEntity<Match> match = restTemplate.postForEntity(baseURL + "/player/" + player2.getId() + "/match", null, Match.class);
+        assertThat(match.getStatusCode(), is(HttpStatus.OK));
+
+        restTemplate.delete(baseURL + "/player/" + player1.getId());
+
+        ResponseEntity<Match> endedMatch = restTemplate.getForEntity(baseURL + "/player/" + player2.getId() + "/match", Match.class);
+        assertThat(match.getStatusCode(), is(HttpStatus.OK));
+        assertThat(endedMatch.getBody().getState(), is(Match.State.PLAYER_LOGOUT));
     }
 }

@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.bol.assessment.Match.State;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -21,6 +23,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 public class MatchController {
+
+    private static final EnumSet<State> MATCH_ONGOING = EnumSet.of(State.MOVE_PLAYER_1, State.MOVE_PLAYER_2);
 
     // TODO: [AH] limit maximum size
     // TODO: [AH] expire old entries (e.g. based on time in UUID or maintain a lastseen timestamp)
@@ -64,12 +68,23 @@ public class MatchController {
 
         Match match = arena.remove(uuid);
         if (match != null) {
-            match.setState(Match.State.PLAYER_LOGOUT);
+            match.setState(State.PLAYER_LOGOUT);
         }
     }
 
     @RequestMapping(value = "/player/{id}/match", method = GET)
-    public Match start(@PathVariable String id) {
+    public Match getMatch(@PathVariable String id) {
+        Player player = getPlayer(id);
+        Match match = arena.get(player.getId());
+        if (match == null) {
+            throw new PlayerNotInAMatchException();
+        }
+
+        return match;
+    }
+
+    @RequestMapping(value = "/player/{id}/match", method = POST)
+    public Match create(@PathVariable String id) {
         Player secondPlayer = getPlayer(id);
 
         Player firstPlayer = waiting.getAndUpdate(player -> player == null || player.equals(secondPlayer) ? secondPlayer : null);
@@ -96,6 +111,10 @@ public class MatchController {
             throw new PlayerChoseIncorrectPitException();
         }
 
+        if (!MATCH_ONGOING.contains(match.getState())) {
+            throw new MatchOverException();
+        }
+
         rules.apply(match, match.whichPlayer(player.getId()), pit);
 
         return match;
@@ -108,6 +127,10 @@ public class MatchController {
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Player not in a match")
     class PlayerNotInAMatchException extends RuntimeException {
+    }
+
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Match over")
+    class MatchOverException extends RuntimeException {
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Incorrect pit")
