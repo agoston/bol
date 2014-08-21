@@ -25,6 +25,8 @@
                 }
             });
 
+            setStatus("Log in to play");
+
             $("input.login:button").click(function (e) {
                 player.name = $("input.login:text").val();
                 login();
@@ -33,6 +35,7 @@
         });
 
         function login() {
+            setStatus("Logging in...");
             $.ajax({
                 url: "/player?name=" + player.name,
                 type: "POST",
@@ -46,6 +49,7 @@
         }
 
         function startMatch() {
+            setStatus("Looking for opponent...");
             $.ajax({
                 url: "/player/" + player.id + "/match",
                 type: "POST",
@@ -82,10 +86,31 @@
         }
 
         // TODO: [AH] put an extra div inside the pit divs, so that text can be styled fully & we're able to apply 'pointer-event: none'
-        // TODO: [AH] draw match state too
+        // TODO: refactor this into smaller, parametrized methods
         function drawBoard() {
             var boardSelector = $("div.board");
             boardSelector.empty();
+
+            // MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, WON_PLAYER1, WON_PLAYER2, WON_BOTH
+            // status
+            if ((match.state == 'MOVE_PLAYER_1' && whichPlayer == 0) || (match.state == 'MOVE_PLAYER_2' && whichPlayer == 1)) {
+                setStatus("Make your move!");
+            } else if ((match.state == 'MOVE_PLAYER_1' && whichPlayer == 1) || (match.state == 'MOVE_PLAYER_2' && whichPlayer == 0)) {
+                setStatus("Wait for your turn!");
+                updateBoardWhenStateChangedFrom(match.state);
+            } else if (match.state == 'PLAYER_LOGOUT') {
+                setStatus("GAME OVER (Opponent logged out)");
+            } else if ((match.state == 'WON_PLAYER_1' && whichPlayer == 0) || (match.state == 'WON_PLAYER_2' && whichPlayer == 1)) {
+                setStatus("GAME OVER. You WON!");
+            } else if ((match.state == 'WON_PLAYER_1' && whichPlayer == 1) || (match.state == 'WON_PLAYER_2' && whichPlayer == 0)) {
+                setStatus("GAME OVER. You LOSE!");
+            } else if (match.state == 'WON_BOTH') {
+                setStatus("GAME OVER. It's a DRAW!");
+            } else {
+                // should not happen
+                console.log(match.state + ": unknown state");
+                setStatus("");
+            }
 
             // names
             for (var i = 0; i < 2; i++) {
@@ -106,8 +131,8 @@
             }
 
             // pits
-            for (var i = 0; i < 2; i++) {
-                for (var j = 0; j < 6; j++) {
+            for (var i = 0; i <= 1; i++) {
+                for (var j = 0; j <= 5; j++) {
                     var newDiv = document.createElement('div');
 
                     $(newDiv).addClass("tiles").addClass(["opponent", "player"][i]);
@@ -123,7 +148,7 @@
                         "line-height": "40px"
                     });
 
-                    newDiv.innerHTML = match.pits[drawOrder[i]][j];
+                    newDiv.innerHTML = match.pits[drawOrder[i]][(i==0)?5-j:j];  // TODO: ouch, there's gotta be a nicer way
                     $(newDiv).appendTo(boardSelector);
                 }
             }
@@ -149,15 +174,50 @@
                 $(newDiv).appendTo(boardSelector);
             }
 
-            $("div.board .player").click(function(e) {
+            $("div.board .player.tiles").click(function(e) {
                 var pit = $("div.board .player").index(this);
 
                 makeMove(pit);
 
                 e.preventDefault();
             })
+        }
 
+        function updateBoardWhenStateChangedFrom(state) {
+            $.ajax({
+                url: "/player/" + player.id + "/match",
+                type: "GET",
+                success: function (data, textStatus, jqXHR) {
+                    console.log(data);
 
+                    if (data.state == state && !pitsChanged(match, data)) {
+                        window.setTimeout(function() {
+                            updateBoardWhenStateChangedFrom(state);
+                        }, 1000);
+                        return;
+                    }
+
+                    anim = $("div.board").fadeOut(40).promise();
+
+                    match = data;
+                    drawBoard();
+
+                    anim.done(function() {
+                        $("div.board").fadeIn(40);
+                    });
+                }
+            });
+        }
+
+        function pitsChanged(match1, match2) {
+            for (var i = 0; i < 2; i++) {
+                for (var j = 0; j < 7; j++) {
+                    if (match1.pits[i][j] != match2.pits[i][j]) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         function makeMove(pit) {
@@ -173,10 +233,12 @@
                     anim.done(function() {
                         $("div.board").fadeIn(40);
                     });
-
                 }
             });
+        }
 
+        function setStatus(statusText) {
+            $("div.status div.text")[0].innerHTML = statusText;
         }
 
     </script>
@@ -188,6 +250,11 @@
                                                                                     class="login"/>
 </div>
 
-<div class="board"/>
+<div class="board"></div>
+
+<div class="status">
+    <div class="text">
+    </div>
+</div>
 
 </body>

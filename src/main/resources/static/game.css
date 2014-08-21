@@ -28,3 +28,17 @@ div.board {
     color: #000;
     font-size: 200%;
 }
+
+.status {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    height: 1em;
+    width: 250px;
+}
+
+.status .text {
+    background-color: #400;
+    text-shadow: 3px 3px 3px #777;
+    color: #fff;
+}
