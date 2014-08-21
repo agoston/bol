@@ -11,6 +11,7 @@
         var player = {};
         var opponent = {};
         var match = {};
+        var whichPlayer = 0;
 
         var anim = null;
 
@@ -58,7 +59,17 @@
                     anim.done(function() {
                         $("div.board").fadeIn();
                     });
+
                     match = data;
+                    if (match.names[0] == player.name) {
+                        whichPlayer = 0;
+                    } else if (match.names[1] == player.name) {
+                        whichPlayer = 1;
+                    } else {
+                        windows.alert("Can't find player!");
+                        return;
+                    }
+
                     drawBoard();
                 }
             });
