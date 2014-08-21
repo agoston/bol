@@ -42,6 +42,7 @@ public class MatchController {
 
     @RequestMapping(value = "/player", method = POST)
     public Player login(@RequestParam(value = "name", required = false, defaultValue = "Anonymous") String name) {
+        // TODO: [AH] add check for name collision
         Player player = new Player(name);
         lobby.put(player.getId(), player);
         return player;
@@ -88,29 +89,29 @@ public class MatchController {
 
     @RequestMapping(value = "/player/{id}/match", method = POST)
     public Match create(@PathVariable String id) {
-        Player secondPlayer = getPlayer(id);
+        Player player = getPlayer(id);
 
         // return existing match if still ongoing; wipe from arena if not
-        Match match = arena.get(secondPlayer.getId());
+        Match match = arena.get(player.getId());
         if (match != null) {
             if (MATCH_ONGOING.contains(match.getState())) {
                 return match;
             } else {
-                arena.remove(secondPlayer.getId());
+                arena.remove(player.getId());
             }
         }
 
-        Player firstPlayer = waiting.getAndUpdate(player -> player == null || player.equals(secondPlayer) ? secondPlayer : null);
+        Player otherPlayer = waiting.getAndUpdate(queuedPlayer -> queuedPlayer == null || queuedPlayer.equals(player) ? player : null);
 
-        if (firstPlayer == null || firstPlayer.equals(secondPlayer)) {
+        if (otherPlayer == null || otherPlayer.equals(player)) {
             throw new WaitingForPlayerException();
         }
 
-        LOGGER.info("Match added: " + firstPlayer + " vs. " + secondPlayer);
+        LOGGER.info("Match added: " + otherPlayer + " vs. " + player);
 
-        Match newMatch = new Match(firstPlayer, secondPlayer);
-        arena.put(firstPlayer.getId(), newMatch);
-        arena.put(secondPlayer.getId(), newMatch);
+        Match newMatch = new Match(otherPlayer, player);    // otherplayer was first
+        arena.put(otherPlayer.getId(), newMatch);
+        arena.put(player.getId(), newMatch);
         return newMatch;
     }
 
