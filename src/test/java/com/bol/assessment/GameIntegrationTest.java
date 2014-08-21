@@ -86,6 +86,7 @@ public class GameIntegrationTest {
     }
 
     // TODO: [AH] this is too complicated to maintain; look for ways to simplify/clean this, e.g. with helper methods that do the grunt work
+    // TODO: [AH] add a complete game to test e2e
     @Test
     public void testFirstMoves() {
         Player player1 = restTemplate.postForObject(baseURL + "/player", null, Player.class);
