@@ -79,6 +79,24 @@
             var boardSelector = $("div.board");
             boardSelector.empty();
 
+            // names
+            for (var i = 0; i < 2; i++) {
+                var nameDiv = document.createElement('div');
+                nameDiv.setAttribute("class", "names");
+                $(nameDiv).css({
+                    position: "absolute",
+                    left: "100px",
+                    top: (i * 200) + "px",
+                    width: "500px",
+                    height: "100px",
+                    margin: "5px",
+                    "text-align": "center",
+                    "line-height": "100px"
+                })
+                nameDiv.innerHTML = match.names[i];
+                $(nameDiv).appendTo(boardSelector);
+            }
+
             // pits
             for (var i = 0; i < 2; i++) {
                 for (var j = 0; j < 6; j++) {
