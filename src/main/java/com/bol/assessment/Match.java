@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class Match {
 
-    public enum State {MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, WON_PLAYER1, WON_PLAYER2, WON_BOTH}
+    public enum State {MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, WON_PLAYER_1, WON_PLAYER_2, WON_BOTH}
 
     @JsonIgnore
     private Player[] players;

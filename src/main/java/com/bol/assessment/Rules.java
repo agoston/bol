@@ -46,9 +46,9 @@ public class Rules {
         }
 
         if (pitsAll[0][6] > pitsAll[1][6]) {
-            match.setState(Match.State.WON_PLAYER1);
+            match.setState(Match.State.WON_PLAYER_1);
         } else if (pitsAll[0][6] < pitsAll[1][6]) {
-            match.setState(Match.State.WON_PLAYER2);
+            match.setState(Match.State.WON_PLAYER_2);
         } else {
             match.setState(Match.State.WON_BOTH);
         }
