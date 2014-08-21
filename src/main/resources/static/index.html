@@ -86,31 +86,10 @@
         }
 
         // TODO: [AH] put an extra div inside the pit divs, so that text can be styled fully & we're able to apply 'pointer-event: none'
-        // TODO: refactor this into smaller, parametrized methods
+        // TODO: [AH] refactor this into smaller, parametrized methods
         function drawBoard() {
             var boardSelector = $("div.board");
             boardSelector.empty();
-
-            // MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, WON_PLAYER_1, WON_PLAYER_2, WON_BOTH
-            // status
-            if ((match.state == 'MOVE_PLAYER_1' && whichPlayer == 0) || (match.state == 'MOVE_PLAYER_2' && whichPlayer == 1)) {
-                setStatus("Make your move!");
-            } else if ((match.state == 'MOVE_PLAYER_1' && whichPlayer == 1) || (match.state == 'MOVE_PLAYER_2' && whichPlayer == 0)) {
-                setStatus("Wait for your turn!");
-                updateBoardWhenStateChangedFrom(match.state);
-            } else if (match.state == 'PLAYER_LOGOUT') {
-                setStatus("GAME OVER (Opponent logged out)");
-            } else if ((match.state == 'WON_PLAYER_1' && whichPlayer == 0) || (match.state == 'WON_PLAYER_2' && whichPlayer == 1)) {
-                setStatus("GAME OVER. You WON!");
-            } else if ((match.state == 'WON_PLAYER_1' && whichPlayer == 1) || (match.state == 'WON_PLAYER_2' && whichPlayer == 0)) {
-                setStatus("GAME OVER. You LOSE!");
-            } else if (match.state == 'WON_BOTH') {
-                setStatus("GAME OVER. It's a DRAW!");
-            } else {
-                // should not happen
-                console.log(match.state + ": unknown state");
-                setStatus("");
-            }
 
             // names
             for (var i = 0; i < 2; i++) {
@@ -145,10 +124,11 @@
                         height: "40px",
                         margin: "5px",
                         "text-align": "center",
-                        "line-height": "40px"
+                        "line-height": "40px",
+                        "user-select": "none"
                     });
 
-                    newDiv.innerHTML = match.pits[drawOrder[i]][(i==0)?5-j:j];  // TODO: ouch, there's gotta be a nicer way
+                    newDiv.innerHTML = match.pits[drawOrder[i]][(i==0)?5-j:j];  // TODO: [AH] ouch, there's gotta be a nicer way
                     $(newDiv).appendTo(boardSelector);
                 }
             }
@@ -167,13 +147,41 @@
                     height: "90px",
                     margin: "5px",
                     "text-align": "center",
-                    "line-height": "90px"
+                    "line-height": "90px",
+                    "user-select": "none"
                 });
 
                 newDiv.innerHTML = match.pits[drawOrder[i]][6];
                 $(newDiv).appendTo(boardSelector);
             }
 
+            updateStatus();
+        }
+
+        function updateStatus() {
+            // MOVE_PLAYER_1, MOVE_PLAYER_2, PLAYER_LOGOUT, WON_PLAYER_1, WON_PLAYER_2, WON_BOTH
+            if ((match.state == 'MOVE_PLAYER_1' && whichPlayer == 0) || (match.state == 'MOVE_PLAYER_2' && whichPlayer == 1)) {
+                setStatus("Make your move!");
+                addBoardEventListeners();
+            } else if ((match.state == 'MOVE_PLAYER_1' && whichPlayer == 1) || (match.state == 'MOVE_PLAYER_2' && whichPlayer == 0)) {
+                setStatus("Wait for your turn!");
+                updateBoardWhenStateChangedFrom(match.state);
+            } else if (match.state == 'PLAYER_LOGOUT') {
+                setStatus("GAME OVER (Opponent logged out)");
+            } else if ((match.state == 'WON_PLAYER_1' && whichPlayer == 0) || (match.state == 'WON_PLAYER_2' && whichPlayer == 1)) {
+                setStatus("GAME OVER. You WON!");
+            } else if ((match.state == 'WON_PLAYER_1' && whichPlayer == 1) || (match.state == 'WON_PLAYER_2' && whichPlayer == 0)) {
+                setStatus("GAME OVER. You LOSE!");
+            } else if (match.state == 'WON_BOTH') {
+                setStatus("GAME OVER. It's a DRAW!");
+            } else {
+                // should not happen
+                console.log(match.state + ": unknown state");
+                setStatus("");
+            }
+        }
+
+        function addBoardEventListeners() {
             $("div.board .player.tiles").click(function(e) {
                 var pit = $("div.board .player").index(this);
 
