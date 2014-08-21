@@ -3,16 +3,17 @@ div.board {
 }
 
 /* board */
-.playertiles {
+.tiles {
     color: #fff;
-    background-color: #b00000;
     text-shadow: 2px 2px 2px #000;
 }
 
-.opponenttiles {
-    color: #fff;
+.tiles.player {
+    background-color: #b00000;
+}
+
+.tiles.opponent {
     background-color: #00b000;
-    text-shadow: 2px 2px 2px #000;
 }
 
 .lubangmenggali {

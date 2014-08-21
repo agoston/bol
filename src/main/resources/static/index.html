@@ -12,6 +12,7 @@
         var opponent = {};
         var match = {};
         var whichPlayer = 0;
+        var drawOrder = [];     // opponent is always on top
 
         var anim = null;
 
@@ -56,25 +57,32 @@
                         return;
                     }
 
-                    anim.done(function() {
-                        $("div.board").fadeIn();
-                    });
-
                     match = data;
+
+                    // first-time init
                     if (match.names[0] == player.name) {
                         whichPlayer = 0;
+                        drawOrder = [1,0];
                     } else if (match.names[1] == player.name) {
                         whichPlayer = 1;
+                        drawOrder = [0,1];
                     } else {
-                        windows.alert("Can't find player!");
+                        window.alert("Can't find player!");
                         return;
                     }
 
                     drawBoard();
+
+                    anim.done(function() {
+                        $("div.board").fadeIn();
+                    });
+
                 }
             });
         }
 
+        // TODO: [AH] put an extra div inside the pit divs, so that text can be styled fully & we're able to apply 'pointer-event: none'
+        // TODO: [AH] draw match state too
         function drawBoard() {
             var boardSelector = $("div.board");
             boardSelector.empty();
@@ -93,7 +101,7 @@
                     "text-align": "center",
                     "line-height": "100px"
                 })
-                nameDiv.innerHTML = match.names[i];
+                nameDiv.innerHTML = match.names[drawOrder[i]];
                 $(nameDiv).appendTo(boardSelector);
             }
 
@@ -102,8 +110,7 @@
                 for (var j = 0; j < 6; j++) {
                     var newDiv = document.createElement('div');
 
-                    if (whichPlayer == i) newDiv.setAttribute("id", "pit_"+j);
-                    newDiv.setAttribute("class", i == whichPlayer ? "playertiles" : "opponenttiles");
+                    $(newDiv).addClass("tiles").addClass(["opponent", "player"][i]);
 
                     $(newDiv).css({
                         position: "absolute",
@@ -116,7 +123,7 @@
                         "line-height": "40px"
                     });
 
-                    newDiv.innerHTML = match.pits[i][j];
+                    newDiv.innerHTML = match.pits[drawOrder[i]][j];
                     $(newDiv).appendTo(boardSelector);
                 }
             }
@@ -125,8 +132,7 @@
             for (var i = 0; i < 2; i++) {
                 var newDiv = document.createElement('div');
 
-                if (whichPlayer == i) newDiv.setAttribute("id", "pit_7");
-                newDiv.setAttribute("class", "lubangmenggali");
+                $(newDiv).addClass("lubangmenggali").addClass(["opponent", "player"][i]);
 
                 $(newDiv).css({
                     position: "absolute",
@@ -139,15 +145,37 @@
                     "line-height": "90px"
                 });
 
-                newDiv.innerHTML = match.pits[i][6];
+                newDiv.innerHTML = match.pits[drawOrder[i]][6];
                 $(newDiv).appendTo(boardSelector);
             }
 
-            $(".playertiles, #pit_7").click(function() {
-                alert(this.getAttribute("id"));
+            $("div.board .player").click(function(e) {
+                var pit = $("div.board .player").index(this);
+
+                makeMove(pit);
+
                 e.preventDefault();
             })
 
+
+        }
+
+        function makeMove(pit) {
+            anim = $("div.board").fadeOut(40).promise();
+            $.ajax({
+                url: "/player/" + player.id + "/match/" + pit,
+                type: "GET",
+                success: function (data, textStatus, jqXHR) {
+                    console.log(data);
+                    match = data;
+                    drawBoard();
+
+                    anim.done(function() {
+                        $("div.board").fadeIn(40);
+                    });
+
+                }
+            });
 
         }
 
