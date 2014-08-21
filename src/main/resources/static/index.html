@@ -12,27 +12,36 @@
         var opponent = {};
         var match = {};
 
+        var anim = null;
+
         $(function () {
+            $.ajaxSetup({
+                dataType: "json",
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // TODO: [AH] add better error reporting
+                    window.alert(textStatus + "\n" + errorThrown);
+                }
+            });
+
             $("input.login:button").click(function (e) {
                 player.name = $("input.login:text").val();
-                $.ajax({
-                    url: "/player?name=" + player.name,
-                    type: "POST",
-                    success: function (data, textStatus, jqXHR) {
-                        console.log(data);
-                        player.id = data.id;
-                        $("div.login").fadeOut(400, function() {
-                            startMatch();
-                            $("div.board").fadeIn(400);
-                        });
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        alert(errorThrown);
-                    }
-                });
+                login();
                 e.preventDefault();
             });
         });
+
+        function login() {
+            $.ajax({
+                url: "/player?name=" + player.name,
+                type: "POST",
+                success: function (data, textStatus, jqXHR) {
+                    console.log(data);
+                    player.id = data.id;
+                    anim = $("div.login").fadeOut().promise();
+                    startMatch();
+                }
+            });
+        }
 
         function startMatch() {
             $.ajax({
@@ -40,68 +49,66 @@
                 type: "POST",
                 success: function (data, textStatus, jqXHR) {
                     console.log(data);
+
                     if (jqXHR.status == 202) {
                         window.setTimeout(startMatch, 1000);
                         return;
                     }
+
+                    anim.done(function() {
+                        $("div.board").fadeIn();
+                    });
                     match = data;
                     drawBoard();
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    alert(errorThrown);
                 }
             });
+        }
 
-            function drawBoard() {
-                var boardSelector = $("div.board");
-                boardSelector.empty();
+        function drawBoard() {
+            var boardSelector = $("div.board");
+            boardSelector.empty();
 
-                // pits
-                for (var i = 0; i < 2; i++) {
-                    for (var j = 0; j < 6; j++) {
-                        var newDiv = document.createElement('div');
-                        newDiv.setAttribute("")
-                        $(newDiv).css({
-                            position: "absolute",
-                            left: (200 + j*50) + "px",
-                            top: (100 + i*50) + "px",
-                            width: "40px",
-                            height: "40px",
-                            margin: "5px",
-                            "color": "#fff",
-                            "background-color": (i==0?"#b00000":"#00b000"),
-                            "text-shadow": "2px 2px 2px #000",
-                            "text-align": "center",
-                            "line-height": "40px"
-                        });
-                        newDiv.innerHTML = match.pits[i][j];
-                        $(newDiv).appendTo(boardSelector);
-                    }
-                }
-
-                // lubang menggali
-                for (var i = 0; i < 2; i++) {
+            // pits
+            for (var i = 0; i < 2; i++) {
+                for (var j = 0; j < 6; j++) {
                     var newDiv = document.createElement('div');
+                    newDiv.setAttribute("id", "");
+                    newDiv.setAttribute("class", i == whichPlayer ? "playertiles" : "opponenttiles");
                     $(newDiv).css({
                         position: "absolute",
-                        left: (100 + i*400) + "px",
-                        top: "100px",
-                        width: "90px",
-                        height: "90px",
+                        left: (200 + j * 50) + "px",
+                        top: (100 + i * 50) + "px",
+                        width: "40px",
+                        height: "40px",
                         margin: "5px",
-                        "color": "#fff",
-                        "background-color": "#542C00",
-                        "text-shadow": "3px 3px 3px #000",
                         "text-align": "center",
-                        "line-height": "80px",
-                        "font-size": "200%"
+                        "line-height": "40px"
                     });
-                    newDiv.innerHTML = match.pits[i][6];
+                    newDiv.innerHTML = match.pits[i][j];
                     $(newDiv).appendTo(boardSelector);
                 }
-
-
             }
+
+            // lubang menggali
+            for (var i = 0; i < 2; i++) {
+                var newDiv = document.createElement('div');
+                newDiv.setAttribute("id", "");
+                newDiv.setAttribute("class", "lubangmenggali");
+                $(newDiv).css({
+                    position: "absolute",
+                    left: (100 + i * 400) + "px",
+                    top: "100px",
+                    width: "90px",
+                    height: "90px",
+                    margin: "5px",
+                    "text-align": "center",
+                    "line-height": "90px"
+                });
+                newDiv.innerHTML = match.pits[i][6];
+                $(newDiv).appendTo(boardSelector);
+            }
+
+
         }
 
     </script>
@@ -109,7 +116,8 @@
 <body>
 
 <div class="login">
-You are: <input type="text" class="login" name="name" value="Anonymous"/><input type="button" value="Start!" class="login"/>
+    You are: <input type="text" class="login" name="name" value="Anonymous"/><input type="button" value="Start!"
+                                                                                    class="login"/>
 </div>
 
 <div class="board"/>

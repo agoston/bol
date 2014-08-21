@@ -1,3 +1,23 @@
 div.board {
     display: none;
 }
+
+/* board */
+.playertiles {
+    color: #fff;
+    background-color: #b00000;
+    text-shadow: 2px 2px 2px #000;
+}
+
+.opponenttiles {
+    color: #fff;
+    background-color: #00b000;
+    text-shadow: 2px 2px 2px #000;
+}
+
+.lubangmenggali {
+    background-color: #542C00;
+    text-shadow: 3px 3px 3px #000;
+    color: #fff;
+    font-size: 200%;
+}
