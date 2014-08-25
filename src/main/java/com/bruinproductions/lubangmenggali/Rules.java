@@ -1,4 +1,4 @@
-package com.bol.assessment;
+package com.bruinproductions.lubangmenggali;
 
 import org.springframework.stereotype.Component;
 

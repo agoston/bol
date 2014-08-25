@@ -1,4 +1,4 @@
-package com.bol.assessment;
+package com.bruinproductions.lubangmenggali;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
